@@ -1,0 +1,26 @@
+# data never goes in git
+data/
+*.csv
+*.parquet
+*.pcap
+*.zip
+# small result tables are fine
+!results/**/*.csv
+
+# python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+venv/
+.env
+
+# model artifacts
+*.joblib
+*.pkl
+*.pt
+
+# os / editor
+.DS_Store
+.vscode/
+.idea/
