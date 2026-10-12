@@ -3,7 +3,7 @@
 Our course report repeated the conclusions of Chua & Salam (2023). Below, each
 of those conclusions is treated as a hypothesis, not a finding. For every claim
 we list what it rests on, why it is in doubt, and which experiment in
-[research-plan.md](research-plan.md) will test it.
+[plan.md](../plan.md) will test it.
 
 All numbers about the baseline come from the outputs saved in the baseline's
 public notebooks (`CIC/0x_*.ipynb`, `LUFlow/0x_*.ipynb`). We have not
@@ -34,7 +34,7 @@ re-run anything yet.
     sizes depend on the operating system and testbed configuration.
   - **Different capture environments.** CIC-IDS2017 was captured on an
     on-premise testbed; CSE-CIC-IDS2018 was captured on AWS.
-- **Tests:** E2.1, E2.2, E2.3, E2.5. **Verdict:** `untested`.
+- **Tests:** Step 2 (full test set), Step 4 (shortcut features), Step 5e (seen vs. unseen attacks), Step 5f (corrected labels), Step 5g (shortcuts removed). **Verdict:** `untested`.
 
 ## C2. "SVM and ANN are the most robust; DT and RF suffer the most"
 
@@ -44,7 +44,7 @@ re-run anything yet.
 - **Why it is in doubt:** the gaps between models (e.g. ANN 0.700 vs DNN 0.652)
   may fall within seed-to-seed variance. Hyperparameters tuned on in-domain CV
   favour models that fit the source domain most tightly.
-- **Tests:** E1.3 (seed variance), E2.2, E3.1. **Verdict:** `untested`.
+- **Tests:** Step 1c (seed variance), Step 3 (modern models), Step 5e. **Verdict:** `untested`.
 
 ## C3. "ANN gives the best balance of accuracy and robustness"
 
@@ -54,9 +54,9 @@ re-run anything yet.
   (0.606 vs 0.496). The preference for ANN rests on SVM's slower inference,
   which is never stated as a criterion. The suitability matrix (Fig. 22) has no
   scoring rubric.
-- **Test:** fix the criteria up front (e.g. recall at a fixed false-positive
-  rate, and latency per 1,000 flows) and report the Pareto front.
-  **Verdict:** `untested`.
+- **Test:** Steps 2–3. Fix the criteria up front (e.g. recall at a fixed
+  false-positive rate, and latency per 1,000 flows) and report the Pareto
+  front. **Verdict:** `untested`.
 
 ## C4. "LUFlow models generalise over time, show no overfitting, and ML stays effective in stable settings"
 
@@ -77,7 +77,7 @@ re-run anything yet.
   - Dropping the `outlier` class (8%) removes exactly the ambiguous cases.
   - Random K-fold over flows from the same scanners puts near-duplicates in
     both training and validation folds.
-- **Tests:** E2.6, E3.4. **Verdict:** `untested`.
+- **Tests:** Step 4 (LUFlow port-only model, models without ports, keeping outliers), Step 5b (port encoding). Month-by-month drift is out of scope (future work). **Verdict:** `untested`.
 
 ## C5. "Accuracy below 0.80 is inadequate for practical deployment"
 
@@ -88,7 +88,7 @@ re-run anything yet.
   - Whether an IDS is usable depends on its false-positive rate at realistic
     attack prevalence (Axelsson, 2000), not on accuracy on a balanced set.
 - **Test:** report false-positive rate, precision at realistic prevalence,
-  PR-AUC, MCC and balanced accuracy, alongside a dummy baseline (E2.1).
+  PR-AUC, MCC and balanced accuracy, alongside a dummy baseline (Step 2).
   **Verdict:** `untested`.
 
 ## C6. "Cross-dataset evaluation is under-explored"
@@ -112,14 +112,14 @@ re-run anything yet.
     CV later scored.
   - Random flow-level folds put flows from the same attack session into both
     training and validation.
-- **Test:** E2.4 (feature selection nested inside CV; folds grouped by capture
-  day or attack window). **Verdict:** `untested`.
+- **Test:** Step 5c (feature selection inside the training folds) and Step 5d
+  (random vs. time-blocked validation). **Verdict:** `untested`.
 
 ---
 
 ## Baseline implementation facts (from the published notebooks)
 
-These matter for a faithful replication (E1.1/E1.2). Several of them are not
+These matter for a faithful replication (Step 1). Several of them are not
 stated in the paper.
 
 | Item | Value in the baseline code |

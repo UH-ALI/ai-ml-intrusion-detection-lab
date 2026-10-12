@@ -1,8 +1,8 @@
 # AI/ML Intrusion Detection Lab
 
 A reproducibility and robustness study of machine-learning network intrusion
-detection (NIDS) under **dataset shift** (CIC-IDS2017 → CSE-CIC-IDS2018) and
-**temporal drift** (LUFlow).
+detection (NIDS) under **dataset shift** (CIC-IDS2017 → CSE-CIC-IDS2018),
+**temporal drift** (LUFlow) and **realistic evasion attacks**.
 
 ## Starting point
 
@@ -15,31 +15,33 @@ public at
 
 Our Information Security course report (DHA Suffa University) used the same
 setup: six classic models (DT, RF, SVM, NB, ANN, DNN), trained on CIC-IDS2017
-and tested on CSE-CIC-IDS2018, and trained on LUFlow 2020 and tested on LUFlow
-2021. In this project we rebuild that pipeline from scratch, test whether its
-conclusions hold up, and extend it.
+and tested on CSE-CIC-IDS2018, and trained on LUFlow (July 2020) and tested on
+LUFlow (January 2021). In this project we rebuild that pipeline from scratch,
+test whether its conclusions hold up, and extend it with a breakdown of why
+models fail and a realistic evasion test.
 
 ## Research questions
 
 | ID  | Question |
 |-----|----------|
-| RQ1 | **Reproducibility.** Do the published results reproduce, and how stable are they across random seeds and subsamples? |
-| RQ2 | **Attribution.** How much of the CIC-IDS2017 → CSE-CIC-IDS2018 performance drop comes from each of these: attack families never seen in training, known label and feature-extraction errors, environment-specific "shortcut" features, and evaluation choices? |
-| RQ3 | **Temporal drift.** Is the reported stability of LUFlow models over time real, or an artifact of shortcut features (e.g. `dest_port`), dropping the `outlier` class, and a two-month window? How quickly does performance decay over the full LUFlow time span? |
-| RQ4 | **Methods.** Do modern tabular learners (gradient-boosted trees, tabular deep learning, tabular foundation models) and adaptation strategies (a few labeled target-domain flows, one-class detectors) close the gap, and how much labeled data does that cost? |
+| RQ1 | **Reproducibility.** Do the published results reproduce, and how stable are they across random seeds? |
+| RQ2 | **Fair evaluation.** Does the picture change with proper metrics, a realistic test set and modern models (gradient-boosted trees, a PyTorch MLP)? |
+| RQ3 | **Breakdown.** How much of the CIC-IDS2017 → CSE-CIC-IDS2018 drop comes from each of these: shortcut features (ports, TCP window sizes), label errors, attack types never seen in training, preprocessing, and evaluation choices? |
+| RQ4 | **Evasion.** How easily can an attacker fool each model by changing only what they control (payload padding, TCP initial window)? |
 
 ## Documents
 
 | Document | What it covers |
 |----------|----------------|
-| [docs/research-plan.md](docs/research-plan.md) | Phased plan, experiment matrix, evaluation rules, team split, risks |
+| [plan.md](plan.md) | **The plan:** every step, how to do it, who does it, and the 8-week timeline |
 | [docs/claims-to-test.md](docs/claims-to-test.md) | Every claim we inherited, why it is in doubt, and the experiment that will test it |
 | [docs/compute-strategy.md](docs/compute-strategy.md) | How to run this on a laptop plus free Kaggle and Colab |
 | [docs/reading-list.md](docs/reading-list.md) | Core literature, grouped by why it matters to this project |
 
 ## Status
 
-**Phase 0: setup.** No experiments have been run in this repository yet.
+**Setup (Week 1 of [plan.md](plan.md)).** No experiments have been run in
+this repository yet.
 Every number in `docs/` that describes past results comes from the baseline
 study's published notebooks and is labeled as such.
 
@@ -47,9 +49,10 @@ study's published notebooks and is labeled as such.
 
 ```
 docs/          plans and notes
-configs/       one YAML file per experiment              (phase 1)
-src/idslab/    data loading, features, models, metrics   (phase 1)
-notebooks/     thin Kaggle/Colab runners that call src/  (phase 1)
+configs/       one YAML file per experiment              (Week 1)
+src/idslab/    data loading, features, models, metrics   (Week 1)
+notebooks/     thin Kaggle/Colab runners that call src/  (Week 1)
+scripts/       run_experiment, make_tables, make_figures (Week 1)
 results/       metrics as JSON/CSV; small, committed
 figures/       generated from results/ by script, never by hand
 data/          raw and processed data; never committed

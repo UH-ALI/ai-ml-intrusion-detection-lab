@@ -18,7 +18,7 @@
 | CIC-IDS2017 (MachineLearningCVE CSVs) | 2.83 M flows × 79 columns | ~1 GB CSV | Yes, as float32 Parquet |
 | CSE-CIC-IDS2018 (10 daily CSVs) | ~16.2 M flows × 80 columns | ~6.5 GB CSV | **No**, not all at once. Process one file at a time, or use Kaggle |
 | LUFlow (daily CSVs) | ~2.5 M rows per month at a 10% sample, so ~25 M per full month | GBs per month | Samples yes; full months, no |
-| NetFlow-v2 (NF-UNSW-NB15-v2, NF-CSE-CIC-IDS2018-v2, NF-ToN-IoT-v2, NF-BoT-IoT-v2) | ~2 M to ~38 M flows each, 43 features | up to several GB each | Smaller ones yes; larger ones on Kaggle |
+| Corrected CIC-IDS2017 / CSE-CIC-IDS2018 (DistriNet or LycoS) | similar to the originals | similar to the originals | Same as the originals |
 
 **Rule of thumb:** memory ≈ rows × columns × 4 bytes in float32. Double that
 for float64, and add 2–3× headroom for pandas operations. Example: all of
@@ -61,11 +61,12 @@ For grouping and joins across many files, **Polars** (`scan_parquet`) or
 | Writing code, unit tests, 1–5% samples | ✅ | | | |
 | Raw CSV → Parquet build | CIC-IDS2017 only | ✅ all datasets | | |
 | DT / RF / NB / logistic regression / LightGBM on full training sets | samples | ✅ | | |
-| Seed sweeps (10 seeds × 6 models) | | ✅ (run as a background "commit") | | |
+| Seed sweeps (5 seeds × all models) | | ✅ (run as a background "commit") | | |
 | RBF SVM | ≤ 50k rows | ≤ 100k rows | cuML SVC for larger sets | |
 | XGBoost with many hyperparameter trials | | ✅ | ✅ `device="cuda"` | ✅ |
-| PyTorch MLP / autoencoder | small | ✅ | ✅ | ✅ |
-| FT-Transformer, TabM, TabPFN | | | ✅ | ✅ |
+| PyTorch MLP | small | ✅ | ✅ (optional) | ✅ (optional) |
+| SHAP: TreeSHAP for trees; KernelSHAP on ≤ 500 rows for SVM/MLP | small | ✅ | | |
+| Evasion test (10 queries per attack flow) | small | ✅ | | |
 
 ### Model-specific notes
 
@@ -80,9 +81,9 @@ For grouping and joins across many files, **Polars** (`scan_parquet`) or
 - **Neural networks.** Use PyTorch rather than sklearn's `MLPClassifier`
   (which has no dropout, batch norm or GPU support), with mini-batches loaded
   from Parquet.
-- **TabPFN.** Its context size limits the number of training rows. That makes
-  it well suited to the small-k part of the label-budget experiment (E3.2),
-  not to full training sets.
+- **SHAP.** TreeSHAP is fast for trees and LightGBM. KernelSHAP is slow, so
+  explain at most about 500 rows against a background sample of about 100
+  rows.
 
 ## Platform tips
 
@@ -105,7 +106,7 @@ For grouping and joins across many files, **Polars** (`scan_parquet`) or
 - Expect about 12 GB of RAM, a GPU when one is available, and disconnects
   when idle.
 - Keep the Parquet files on Google Drive, mount it, and checkpoint often.
-- Good for one-off GPU jobs, such as TabPFN or a transformer run. Not good for
+- Good for one-off GPU jobs, such as training the PyTorch MLP. Not good for
   data building.
 
 **Laptop**
