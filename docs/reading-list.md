@@ -110,6 +110,7 @@ Step numbers refer to [plan.md](../plan.md).
 25. **Luay, M., Layeghy, S. et al. (2025).** Temporal Analysis of NetFlow
     Datasets for Network Intrusion Detection Systems. arXiv:2503.04404.
     **Why:** NetFlow v3, which adds timing features (53 features in total).
+    Our newer-data check (Step 5h).
 26. **Shafi, M., Lashkari, A. H. & Haghighian Roudsari, A. (2024).**
     NTLFlowLyzer. *Computers & Security*. **Why:** the tool behind
     BCCC-CIC-IDS2017.
