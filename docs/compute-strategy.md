@@ -20,6 +20,7 @@
 | LUFlow (daily CSVs) | ~2.5 M rows per month at a 10% sample, so ~25 M per full month | GBs per month | Samples yes; full months, no |
 | Corrected CIC-IDS2017 / CSE-CIC-IDS2018 (DistriNet or LycoS) | similar to the originals | similar to the originals | Same as the originals |
 | NetFlow v3 (NF-CSE-CIC-IDS2018-v3, NF-UNSW-NB15-v3, NF-ToN-IoT-v3) | ~2 M to ~20 M flows each, 53 features | up to several GB each | Samples yes; full files on Kaggle |
+| CICIoT2023 (CSV release) | tens of millions of rows, ~46 features | many GB | Samples only; build on Kaggle |
 
 **Rule of thumb:** memory ≈ rows × columns × 4 bytes in float32. Double that
 for float64, and add 2–3× headroom for pandas operations. Example: all of

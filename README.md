@@ -2,8 +2,8 @@
 
 A reproducibility and robustness study of machine-learning network intrusion
 detection (NIDS) under **dataset shift** (CIC-IDS2017 → CSE-CIC-IDS2018),
-**temporal drift** (LUFlow) and **realistic evasion attacks**, with a check
-on newer data (NetFlow v3, 2025).
+**temporal drift** (LUFlow) and **realistic evasion attacks**, with checks
+on newer data (NetFlow v3, 2025; CICIoT2023).
 
 ## Starting point
 
@@ -27,14 +27,14 @@ models fail and a realistic evasion test.
 |-----|----------|
 | RQ1 | **Reproducibility.** Do the published results reproduce, and how stable are they across random seeds? |
 | RQ2 | **Fair evaluation.** Does the picture change with proper metrics, a realistic test set and modern models (gradient-boosted trees, a PyTorch MLP)? |
-| RQ3 | **Breakdown.** How much of the CIC-IDS2017 → CSE-CIC-IDS2018 drop comes from each of these: shortcut features (ports, TCP window sizes), label errors, attack types never seen in training, preprocessing, and evaluation choices? Do the findings hold on newer data released after the baseline (NetFlow v3, 2025)? |
+| RQ3 | **Breakdown.** How much of the CIC-IDS2017 → CSE-CIC-IDS2018 drop comes from each of these: shortcut features (ports, TCP window sizes), label errors, attack types never seen in training, preprocessing, and evaluation choices? Do the findings hold on newer data: a benchmark released after the baseline (NetFlow v3, 2025) and newer IoT attacks (CICIoT2023)? |
 | RQ4 | **Evasion.** How easily can an attacker fool each model by changing only what they control (payload padding, TCP initial window)? |
 
 ## Documents
 
 | Document | What it covers |
 |----------|----------------|
-| [plan.md](plan.md) | **The plan:** every step, how to do it, who does it, and the 9-week timeline |
+| [plan.md](plan.md) | **The plan:** every step, how to do it, who does it, and the 10-week timeline |
 | [docs/claims-to-test.md](docs/claims-to-test.md) | Every claim we inherited, why it is in doubt, and the experiment that will test it |
 | [docs/compute-strategy.md](docs/compute-strategy.md) | How to run this on a laptop plus free Kaggle and Colab |
 | [docs/reading-list.md](docs/reading-list.md) | Core literature, grouped by why it matters to this project |

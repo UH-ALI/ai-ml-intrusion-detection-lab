@@ -105,6 +105,7 @@ Step numbers refer to [plan.md](../plan.md).
 
 23. **CICIoT2023:** 33 attacks on 105 IoT devices, in 7 categories. UNB CIC;
     described in *Sensors* (2023). †authors
+    **Why:** our newer-attacks check (Step 5i).
 24. **CICIoMT2024:** 18 attacks on 40 medical IoT devices over Wi-Fi, MQTT and
     Bluetooth. UNB CIC; *Internet of Things* (2024). †authors
 25. **Luay, M., Layeghy, S. et al. (2025).** Temporal Analysis of NetFlow

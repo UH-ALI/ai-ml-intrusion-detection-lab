@@ -3,7 +3,7 @@
 **Working title:** *Why ML Intrusion Detectors Fail Outside the Lab: A
 Reproduction and Breakdown of Chua & Salam (2023)*
 
-**Team:** 2 people · **Duration:** 9 weeks · **Compute:** laptop + free Kaggle
+**Team:** 2 people · **Duration:** 10 weeks · **Compute:** laptop + free Kaggle
 (see [docs/compute-strategy.md](docs/compute-strategy.md))
 
 This is the single source of truth for what we do and in what order. If
@@ -20,7 +20,8 @@ ML intrusion detectors score about 99% in the lab. Do they still work:
 1. on a **different network** (CIC-IDS2017 → CSE-CIC-IDS2018)?
 2. at a **later time** (LUFlow July 2020 → January 2021)?
 3. when an **attacker deliberately adjusts their traffic** to fool the model?
-4. on **newer data** released after Chua & Salam (NetFlow v3, 2025)?
+4. on **newer data**: a benchmark released after Chua & Salam (NetFlow v3,
+   2025) and newer IoT attacks (CICIoT2023)?
 
 If not, **why**, and how much does each cause contribute?
 
@@ -30,7 +31,7 @@ If not, **why**, and how much does each cause contribute?
 |---|--------------|------------|
 | C1 | An independent reproduction of Chua & Salam (2023), with seed variance they did not report | Step 1 |
 | C2 | A fair re-evaluation (full test set, proper metrics, confidence intervals) plus modern models | Steps 2–3 |
-| C3 | **A breakdown of the cross-dataset drop** by cause: shortcut features, label errors, unseen attacks, preprocessing, evaluation setup; then a check on newer data (NetFlow v3, 2025) | Steps 4–5 (5h) |
+| C3 | **A breakdown of the cross-dataset drop** by cause: shortcut features, label errors, unseen attacks, preprocessing, evaluation setup; then checks on newer data (NetFlow v3, 2025; CICIoT2023) | Steps 4–5 (5h, 5i) |
 | C4 | A realistic evasion test: how easily an attacker can fool each model by changing only what they control | Step 6 |
 
 C3 is the headline. Other papers show *that* models fail on new data; few
@@ -55,7 +56,7 @@ measure *how much of the failure each cause explains*.
 
 | Professor's item | Where | Notes |
 |------------------|-------|-------|
-| Include dataset(s) | §2.2, Steps 5f, 5h | CIC-IDS2017, CSE-CIC-IDS2018, LUFlow, the **corrected** CIC versions, and **NetFlow v3 (2025)**, released after Chua & Salam. We drop NSL-KDD because it is built from 1998 traffic and reviewers increasingly reject it |
+| Include dataset(s) | §2.2, Steps 5f, 5h, 5i | CIC-IDS2017, CSE-CIC-IDS2018, LUFlow, the **corrected** CIC versions, **NetFlow v3 (2025)**, released after Chua & Salam, and **CICIoT2023** (newer IoT attacks). We drop NSL-KDD because it is built from 1998 traffic and reviewers increasingly reject it |
 | ML / DL algorithms | Steps 1, 3 | The original 6, plus logistic regression, LightGBM/XGBoost and a PyTorch MLP |
 | Feature selection (SHAP, LIME, permutation) | Steps 4, 5c | SHAP and permutation for ranking; LIME for individual examples |
 | Ablation (preprocessing, encoding, normalisation, standardisation) | Steps 5a, 5b | One change at a time |
@@ -135,6 +136,12 @@ measure *how much of the failure each cause explains*.
     and NF-ToN-IoT-v3 from staff.itee.uq.edu.au/marius/NIDS_datasets/ (University
     of Queensland). All share the same 53 NetFlow features, so no column
     mapping is needed. Used in Step 5h.
+  - **CICIoT2023 (newer IoT attacks):** the CSV release from UNB
+    (unb.ca/cic/datasets/iotdataset-2023.html) or a Kaggle mirror: 33 attacks
+    in 7 categories (DDoS, DoS, Recon, Web, Brute Force, Spoofing, Mirai) on
+    105 IoT devices. Used in Step 5i, **on its own only**: its features are
+    computed over windows of packets rather than per flow (confirm in the
+    dataset paper), so its columns cannot be matched to CIC or NetFlow.
 - **Done when:** every dataset is attached to a Kaggle notebook and its row
   counts are logged in `docs/data-log.md`.
 
@@ -157,7 +164,11 @@ measure *how much of the failure each cause explains*.
   - **NetFlow v3:** drop IP addresses and timestamps; keep `Label` and
     `Attack` as `label_binary` and `label_family`. Store a stratified 20%
     sample of the larger files if the full set is too big for Kaggle RAM.
-  - Write one Parquet file per day (per file for NetFlow v3). Save the set as a **private Kaggle
+  - **CICIoT2023:** keep the attack name and its category as
+    `label_family` and `label_category`; keep the **source file name** as a
+    column (needed for the grouped split in Step 5i). Store a stratified
+    sample if the full set is too big for Kaggle RAM.
+  - Write one Parquet file per day (per file for NetFlow v3 and CICIoT2023). Save the set as a **private Kaggle
     Dataset** and add the teammate as a collaborator.
 - **Done when:** both of us load the Parquet files from Kaggle, and a 5%
   sample loads on a laptop.
@@ -411,12 +422,45 @@ measure *how much of the failure each cause explains*.
 - **Question:** do the shortcut-feature finding and the model ranking from the
   CIC pair hold on a newer, standardised benchmark?
 
+### 5i. Newer IoT attacks: CICIoT2023 (within-dataset check)
+
+- **Why:** CICIoT2023 has newer attack types (Mirai, IoT spoofing, MQTT-era
+  devices) than the CIC pair. It tests whether our findings hold on newer
+  attacks, not only on a newer data release.
+- **Why within-dataset only:** its columns describe packet windows, not flows,
+  so matching them to CIC or NetFlow would compare different quantities. We
+  never train on one dataset and test on CICIoT2023, or the reverse.
+- **How:**
+  - **Split:** a time-based split if the files carry timestamps; otherwise a
+    **grouped split by source file**: whole capture files go to either
+    training or testing, never both. This blocks near-duplicate rows from
+    leaking across the split. Also report the random split, to show how much
+    it inflates the score.
+  - **Models:** RF, LightGBM, the MLP, and the best classic model from Step 2
+    (SVM on ≤ 50k training rows). All 5 seeds, all Step 2 metrics.
+  - **Reference rows:** the dummy classifier, and the **best single feature**
+    (a decision tree on each feature alone; report the best). CICIoT2023 may
+    have no port column, so this replaces the port-only row.
+  - **Shortcut check:** SHAP and permutation importance (Step 4 methods). Is
+    near-perfect accuracy carried by one or two features?
+  - **Unseen attacks:** leave one attack category out of training at a time
+    (e.g. train without Mirai, test on Mirai). This is the within-dataset
+    version of Step 5e.
+  - **Evasion (optional):** only if the size features can be recomputed under
+    padding and pass the p = 0 check from Step 6.
+- **Question:** do inflated in-dataset scores, shortcut features and failure
+  on unseen attacks also appear on newer IoT attack data?
+- **Done when:** grouped-split and leave-one-category-out results are
+  reported over 5 seeds.
+
 ### Output of Step 5
 
 - **The "waterfall" figure:** the 2017 → 2018 drop, broken into the
   contribution of each factor (5d, 5e, 5f, 5g).
 - A 3×3 heatmap of cross-dataset results on NetFlow v3 (5h), with and without
   shortcut features.
+- A CICIoT2023 table (5i): random vs. grouped split, and recall per
+  left-out attack category.
 - One results table per ablation.
 
 **Done when:** every ablation is run over 5 seeds for at least DT, RF, SVM,
@@ -482,7 +526,7 @@ the MLP and LightGBM.
 
 ---
 
-## 9. Step 7: Literature review and comparison table (Weeks 1–7, in parallel)
+## 9. Step 7: Literature review and comparison table (Weeks 1–8, in parallel)
 
 - **Goal:** know what is already established, so we can state what is new.
   This also covers the professor's comparison-table item.
@@ -516,13 +560,14 @@ the MLP and LightGBM.
       BCCC-CIC-IDS2017 and the corrected CIC versions, with year, setting,
       attack types and features. This shows we know the newer datasets, and
       explains our choices: the CIC pair to stay comparable with the
-      baseline, and NetFlow v3 as the newer benchmark.
+      baseline, NetFlow v3 as the newer benchmark, and CICIoT2023 for newer
+      attacks.
 - **Done when:** both tables are filled and every entry has a verified
   citation in Zotero.
 
 ---
 
-## 10. Step 8: Writing, figures and release (Weeks 8–9)
+## 10. Step 8: Writing, figures and release (Weeks 9–10)
 
 - **Paper outline, and which step feeds each section:**
   1. Introduction: the problem, the baseline, our contributions C1–C4.
@@ -535,7 +580,7 @@ the MLP and LightGBM.
      - 5.2 Fair evaluation and modern models (Steps 2–3)
      - 5.3 What models rely on (Step 4)
      - 5.4 Breakdown of the drop (Step 5, the waterfall figure)
-     - 5.5 Does it hold on newer data? (Step 5h, NetFlow v3)
+     - 5.5 Does it hold on newer data? (Step 5h, NetFlow v3; Step 5i, CICIoT2023)
      - 5.6 Evasion (Step 6)
   6. Discussion: implications for deployment, limitations, future work (§13).
   7. Conclusion.
@@ -549,7 +594,7 @@ the MLP and LightGBM.
   - Give the professor a draft for review.
   - Run the definition-of-done checklist (§14).
   - Post to arXiv (cs.CR). First-time submitters may need an endorsement, so
-    ask a faculty member in Week 7.
+    ask a faculty member in Week 8.
   - Submit to a security workshop or a journal (e.g. *Computers & Security*,
     *JISA*, *IEEE Access*).
   - Tag a GitHub release.
@@ -567,8 +612,9 @@ the MLP and LightGBM.
 | 5 | Step 5f (corrected datasets) | Step 5d, 5e, 5g |
 | 6 | Step 5h: NetFlow v3 data build and 3×3 cross-dataset runs | Step 6: feature recomputation, its check, first evasion runs |
 | 7 | Step 5h: domain classifier and shortcut removal on NetFlow v3 | Step 6 evasion runs finished; literature tables finished |
-| 8 | Figures and tables; methods and results sections | Related work, introduction, discussion |
-| 9 | Revise after the professor's review; release; arXiv | Same |
+| 8 | Step 5i: CICIoT2023 build, grouped split, all models | Step 5i: SHAP check and leave-one-category-out runs |
+| 9 | Figures and tables; methods and results sections | Related work, introduction, discussion |
+| 10 | Revise after the professor's review; release; arXiv | Same |
 
 - **Weekly:** a 30-minute sync. Update this file's checkboxes (§14), and
   review each other's pull requests.
@@ -584,15 +630,16 @@ the MLP and LightGBM.
 | SVM too slow on large sets | Train on ≤ 50k rows (as the baseline did) and predict on a 200k stratified sample. Report the sizes |
 | Evasion feature recomputation doesn't match | Restrict the attack to features that pass the p = 0 check, and document which ones |
 | Results confirm known findings | The breakdown (C3) and the realistic evasion test (C4) are still new; the headline drop is not the contribution |
-| NetFlow v3 files too large for Kaggle RAM | Use stratified samples (§2.3); report the sizes |
-| Running out of time | Cut in this order: adversarial-training defence → unconstrained attack contrast → LIME examples → LUFlow encoding variants → NF-ToN-IoT-v3 (keep a 2×2 grid) → 5f |
+| NetFlow v3 or CICIoT2023 files too large for Kaggle RAM | Use stratified samples (§2.3); report the sizes |
+| Running out of time | Cut in this order: adversarial-training defence → unconstrained attack contrast → LIME examples → LUFlow encoding variants → CICIoT2023 evasion → NF-ToN-IoT-v3 (keep a 2×2 grid) → 5i leave-one-category-out → 5f |
 
 ## 13. Out of scope (future work)
 
 - NSL-KDD and other legacy datasets.
 - Month-by-month drift on LUFlow, and retraining schedules.
 - "How many labelled examples from the new network fix the model."
-- NF-BoT-IoT-v3; IoT-specific datasets (CICIoT2023, CICIoMT2024).
+- NF-BoT-IoT-v3; CICIoMT2024; any cross-dataset test involving CICIoT2023
+  (it would need re-extraction from raw packet captures).
 - Poisoning and backdoor attacks; LLM-based detectors.
 
 ## 14. Definition of done (check before submission)
