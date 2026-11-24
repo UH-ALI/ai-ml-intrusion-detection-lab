@@ -38,22 +38,49 @@ models fail and a realistic evasion test.
 | [docs/claims-to-test.md](docs/claims-to-test.md) | Every claim we inherited, why it is in doubt, and the experiment that will test it |
 | [docs/compute-strategy.md](docs/compute-strategy.md) | How to run this on a laptop plus free Kaggle and Colab |
 | [docs/reading-list.md](docs/reading-list.md) | Core literature, grouped by why it matters to this project |
+| [docs/data-log.md](docs/data-log.md) | Where each dataset comes from, what we checked, row counts per build |
+| [docs/kaggle-setup.md](docs/kaggle-setup.md) | Step-by-step: build the Parquet files and run experiments on Kaggle |
 
 ## Status
 
-**Setup (Week 1 of [plan.md](plan.md)).** No experiments have been run in
-this repository yet.
-Every number in `docs/` that describes past results comes from the baseline
-study's published notebooks and is labeled as such.
+**Week 1 of [plan.md](plan.md): setup.**
 
-## Planned layout
+- Done:
+  - the `idslab` package: an explicit 2017↔2018 column mapping (tested
+    against the real CSV headers), CSV → Parquet cleaning, the Step 2
+    metrics, the baseline models with Chua & Salam's settings, and a
+    config-driven runner;
+  - 41 tests, including one that reproduces Chua & Salam's published Table 5
+    decision-tree numbers from their confusion matrix;
+  - one CSE-CIC-IDS2018 day built and checked
+    ([docs/data-log.md](docs/data-log.md)).
+- Next: the full Parquet builds on Kaggle
+  ([docs/kaggle-setup.md](docs/kaggle-setup.md)), then Step 1 in Week 2.
+
+No experiment on real data has been run yet. Every number in `docs/` that
+describes past results comes from the baseline study's published notebooks and
+is labeled as such.
+
+## Quick start
+
+```bash
+python -m venv .venv && source .venv/bin/activate
+pip install -e . pytest
+python -m pytest -q                                  # 41 tests, a few seconds
+python scripts/run_experiment.py configs/smoke.yaml  # synthetic end-to-end run
+python scripts/make_tables.py results/smoke          # mean ± 95% CI table
+```
+
+`requirements.txt` pins the exact versions used locally (Python 3.13).
+
+## Layout
 
 ```
-docs/          plans and notes
-configs/       one YAML file per experiment              (Week 1)
-src/idslab/    data loading, features, models, metrics   (Week 1)
-notebooks/     thin Kaggle/Colab runners that call src/  (Week 1)
-scripts/       run_experiment, make_tables, make_figures (Week 1)
+docs/          plans, data log, Kaggle how-to
+configs/       one YAML file per experiment
+src/idslab/    columns, data, metrics, models, experiment, results
+scripts/       build_parquet, run_experiment, make_tables
+tests/         unit tests; fixtures hold the real CSV headers
 results/       metrics as JSON/CSV; small, committed
 figures/       generated from results/ by script, never by hand
 data/          raw and processed data; never committed

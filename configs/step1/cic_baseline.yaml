@@ -1,0 +1,20 @@
+# Step 1b: Chua & Salam's CIC setup rebuilt with our code (run in Week 2, on
+# Kaggle, after the Parquet build). Settings from their notebooks:
+#   2017: dedup -> cap attack families at 100k -> balance 1:1 (649,762 rows)
+#         -> sample 10% -> 70/30 split (45,483 training rows)
+#   2018: 10% subset -> dedup -> balance 1:1 (515,582 rows) -> sample 10%
+#         (51,558 test rows)
+name: step1_cic_baseline
+output_dir: results/step1/cic_baseline
+seeds: [0, 1, 2, 3, 4]
+data:
+  train: {source: parquet, path: data/parquet/cic2017}
+  test: {source: parquet, path: data/parquet/cse2018, sample_frac: 0.1, load_seed: 0}
+prepare:
+  train: {cap_families: 100000, balance: true, frac: 0.1}
+  test: {balance: true, frac: 0.1}
+in_domain_test_size: 0.3
+features: baseline_cic
+scaler: standard
+models: [dummy, dt_baseline, rf_baseline, svm_baseline, nb_baseline, ann_baseline,
+         dnn_baseline]

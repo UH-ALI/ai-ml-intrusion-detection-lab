@@ -159,8 +159,10 @@ measure *how much of the failure each cause explains*.
     datasets, to catch swapped columns.
   - Replace inf with NaN, drop rows with NaN, and drop exact duplicates
     **within** each dataset.
-  - Downcast to float32. Keep **two** label columns: `label_binary` and
-    `label_family` (the original attack name).
+  - Keep features as float64 on disk, so duplicate removal matches the raw
+    data exactly; `load_dataset()` removes duplicates and then downcasts to
+    float32. Keep the label columns `label` (raw), `label_family` (canonical
+    attack name) and `label_binary`.
   - **NetFlow v3:** drop IP addresses and timestamps; keep `Label` and
     `Attack` as `label_binary` and `label_family`. Store a stratified 20%
     sample of the larger files if the full set is too big for Kaggle RAM.

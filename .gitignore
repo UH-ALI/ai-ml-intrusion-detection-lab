@@ -6,6 +6,7 @@ data/
 *.zip
 # small result tables are fine
 !results/**/*.csv
+!tests/fixtures/*.csv
 
 # python
 __pycache__/
@@ -24,3 +25,7 @@ venv/
 .DS_Store
 .vscode/
 .idea/
+
+# synthetic smoke-test output
+results/smoke/
+*.egg-info/
